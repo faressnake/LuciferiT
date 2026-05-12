@@ -27,7 +27,7 @@ import ast
 import tempfile
 from collections import deque
 from telebot.types import InlineKeyboardMarkup, InlineKeyboardButton
-
+from flask import Flask
 # ================================================================
 #  الإعدادات
 # ================================================================
@@ -1207,7 +1207,11 @@ def on_message(message):
         args=(message,),
         daemon=True
     ).start()
+app = Flask(__name__)
 
+@app.route('/')
+def home():
+    return "Lucifer Bot Running!"
 # ================================================================
 #  نقطة الانطلاق
 # ================================================================
@@ -1215,21 +1219,29 @@ if __name__ == "__main__":
     print("=" * 58)
     print("  🦊 RedFox AI Bot — FUSION ENGINE v6")
     print("=" * 58)
-    print(f"  النماذج الكلية   : {len(ALL_MODELS)}")
-    print(f"  نماذج FUSION     : 8 (6 مراحل)")
-    print(f"  الامتدادات       : {len(CODE_EXT)}")
-    print(f"  الذاكرة          : {MAX_HISTORY} رسالة/مستخدم")
-    print(f"  الملف إذا        : >={FILE_LINE_THRESHOLD}سطر أو >={FILE_CHAR_THRESHOLD}حرف")
-    print("=" * 58)
-    print("  Pipeline:")
-    for role, mk in FUSION_PIPELINE.items():
-        print(f"    {role:15}: {ALL_MODELS.get(mk, mk)}")
-    print("=" * 58)
+
+    # حذف أي webhook قديم
     bot.remove_webhook()
     time.sleep(1)
-    while True:
-        try:
-            bot.infinity_polling(timeout=30, long_polling_timeout=25)
-        except Exception as e:
-            print(f"[خطأ] {e} — إعادة المحاولة بعد 5 ثوانٍ...")
-            time.sleep(5)
+
+    # تشغيل البوت في Thread
+    def run_bot():
+        while True:
+            try:
+                bot.infinity_polling(
+                    timeout=30,
+                    long_polling_timeout=25
+                )
+            except Exception as e:
+                print(f"[خطأ] {e}")
+                time.sleep(5)
+
+    threading.Thread(target=run_bot, daemon=True).start()
+
+    # Flask server للـ Render
+    port = int(os.environ.get("PORT", 10000))
+
+    app.run(
+        host="0.0.0.0",
+        port=port
+)
