@@ -1225,7 +1225,8 @@ if __name__ == "__main__":
     for role, mk in FUSION_PIPELINE.items():
         print(f"    {role:15}: {ALL_MODELS.get(mk, mk)}")
     print("=" * 58)
-
+    bot.remove_webhook()
+    time.sleep(1)
     while True:
         try:
             bot.infinity_polling(timeout=30, long_polling_timeout=25)
